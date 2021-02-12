@@ -1,0 +1,9 @@
+﻿model,outcome,modality,event_censor
+OS,days_to_death_LFU_int,cox,Death_observed_bool
+Readm_death_TTE,days_adm1_to_readm_death_LFU_int,cox,Death_observed_bool
+Readm_death_win_90d,death_or_readm_within_90d_bin_fact,logistic,
+LOS,length_of_stay_adm1_int,linear,
+PHQ4D,PHQ2_total_int,linear,
+PHQ4A,GAD2_total_int,linear,
+ESAS_total,ESAS_total_int,linear,
+ESAS_phys,ESAS_physical_int,linear,

@@ -1,0 +1,524 @@
+---
+title: 'IPRO 2: Dataset exploration'
+output: html_document
+---
+Peter Marquardt 2020-06-09
+
+This is an explorative overview of the data we plan to use for the IPRO 2 project. Before I start running the statistical models we agreed on, I want to make sure the data is as clean as possible.
+
+One thing upfront: The 'study id' column contains multiple duplicate values. Are these two different entries for the same patient or is this an orphan column? and if these are duplicates, how did we deal with it statistically in the original IPRO project?
+
+
+<span style="color:red">-> use number, the study IDs are a relict from separate curable/incurable data sets</span>
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(patchwork)
+```
+
+```{r, echo=FALSE,warning=FALSE, message=FALSE, cache=FALSE}
+# Importing the data
+source('Get_IPRO_data.R')
+#df <- Get_IPRO_data('C:/Boston DroBo/Dropbox (Partners HealthCare)/iPRO_BC_shared/20200522_iPRO_Cachexia_Database_for Florian.csv') # Surface only
+df <- Get_IPRO_data()
+```
+
+
+### 1. Who's in the dataset? Basic baseline characteristics
+
+#### 1.1 Sex
+```{r, echo=TRUE}
+ggplot(data.frame(table(df$sex_bin_fact, useNA = 'ifany')), aes(x = '', y = Freq, fill = Var1)) +
+  geom_bar(width = 1, stat = 'identity', colour = 'black') +
+  coord_polar("y", start=0) +
+  labs(title = "Sex distribution", x = element_blank()) +
+  scale_y_continuous("Count", breaks = seq(0,850,by = 50)) +
+  scale_fill_discrete('Patient sex') +
+  theme_minimal()
+```
+
+Patient sex is very evenly distributed.
+
+***
+
+#### 1.2 Age
+```{r, echo=TRUE}
+ggplot(df, aes(age_int)) +
+  geom_histogram(fill = 'red', colour = 'black', binwidth = 5) +
+  scale_x_continuous("Age", breaks = seq(20,100,by = 10)) +
+  scale_y_continuous("Count", breaks = seq(0,150,by = 25)) +
+  labs(title = "Patient age") +
+  theme_minimal()
+```
+
+Age is also very evenly distributed.
+
+***
+
+#### 1.3 Race
+```{r, echo=TRUE}
+ggplot(data.frame(table(df$race_bin_fact, useNA = 'ifany')), aes(x = '', y = Freq, fill = Var1)) +
+  geom_bar(width = 1, stat = 'identity', colour = 'black') +
+  coord_polar("y", start=0) +
+  labs(title = "Patient race", x = element_blank()) +
+  scale_y_continuous("Count", breaks = seq(0,850,by = 50)) +
+  scale_fill_discrete('Race') +
+  theme_minimal()
+```
+
+
+***
+
+
+#### 1.4 Religion
+```{r, echo=TRUE}
+ggplot(df, aes(religion_fact)) +
+  geom_bar(fill = 'red', colour = 'black') +
+  scale_y_continuous("Count", breaks = seq(0,450,by = 50)) +
+  labs(title = "Patient religion") +
+  theme_minimal()
+```
+
+__I still need to know which factorial category of religion codes for what.__  
+Correcting for religion might be possible if we group religions 4-6 into 'other'.
+
+<span style="color:red">-> The two major categories are likely Christian: Catholic and Christian:other; we will not include religion as a variable</span>
+
+***
+
+
+#### 1.5. Education
+
+```{r, echo=TRUE}
+ggplot(data.frame(table(df$education_bin_fact, useNA = 'ifany')), aes(x = '', y = Freq, fill = Var1)) +
+  geom_bar(width = 1, stat = 'identity', colour = 'black') +
+  coord_polar("y", start=0) +
+  labs(title = "Patient education", x = element_blank()) +
+  scale_y_continuous("Count", breaks = seq(0,850,by = 50)) +
+  scale_fill_discrete('Education level') +
+  theme_minimal()
+```
+
+The majority of our cohort has enjoyed secondary education. Notably, there are 75 missing entries in the cohort. __Is there reasonable hope for obtaining the missing entries without too much effort?__
+
+<span style="color:red">-> This is the max obtainable amount, treat as 3 categories</span>
+
+***
+
+
+#### 1.6. Marital status
+
+```{r, echo=TRUE}
+ggplot(data.frame(table(df$married_bin_fact, useNA = 'ifany')), aes(x = '', y = Freq, fill = Var1)) +
+  geom_bar(width = 1, stat = 'identity', colour = 'black') +
+  coord_polar("y", start=0) +
+  labs(title = "Patient marital status", x = element_blank()) +
+  scale_y_continuous("Count", breaks = seq(0,850,by = 50)) +
+  scale_fill_discrete('Marital status') +
+  theme_minimal()
+```
+
+About two thirds of our patients are married.
+
+***
+
+
+#### 1.7 Government insurance
+
+```{r, echo=TRUE}
+ggplot(data.frame(table(df$Insurance_government_bin_fact, useNA = 'ifany')), aes(x = '', y = Freq, fill = Var1)) +
+  geom_bar(width = 1, stat = 'identity', colour = 'black') +
+  coord_polar("y", start=0) +
+  labs(title = "Patient insurance provider", x = element_blank()) +
+  scale_y_continuous("Count", breaks = seq(0,850,by = 50)) +
+  scale_fill_discrete('On government insurance?', ) +
+  theme_minimal()
+```
+
+About half of the cohort are on government insurance.
+
+Include in table 1, but not in analysis?
+
+<span style="color:red">-> treat as in original IPRO paper</span>
+
+***
+
+
+#### 1.8 Cancer type
+```{r, echo=TRUE}
+ggplot(df, aes(cancer_dx_cat_fact_grouped)) +
+  geom_bar(fill = 'red', colour = 'black') +
+  scale_y_continuous("Count", breaks = seq(0,300,by = 50)) +
+  coord_flip() +
+  labs(title = "Patient cancer type") +
+  theme_minimal()
+```
+
+The two most prominant cancer types are GI and Lung. __Several categories (Myeloproliferative other, Lymphoma, Unknown, Plasma Cell Disorder) are so infrequent we might consider grouping them as 'other' to avoid overfitting.__
+
+<span style="color:red">-> Grouped to mimick IPRO paper</span>
+
+***
+
+
+#### 1.9 Charlson Comorbidity Index
+
+```{r, echo=TRUE}
+ggplot(df, aes(CCI_total_int)) +
+  geom_bar(fill = 'red', colour = 'black') +
+  scale_y_continuous("Count", breaks = seq(0,500,by = 50)) +
+  scale_x_continuous(breaks = seq(0,8, by = 1)) +
+  labs(title = "Patient CCI score") +
+  theme_minimal()
+```
+
+About half of our patient has no significant comorbidities, according to their CCI score. This is surprising in so far as they all have a cancer diagnosis. 
+__Lots of questions here:__  
+
+* **At what point in the patient’s care was CCI obtained?**
+  + <span style="color:red">It's collected from the admission note</span>
+* **Is this because the score used here is the pre-cancer-diagnosis score?**
+  + <span style="color:red">The score includes every comorbidity except the cancer</span>
+* **Is that standard for the field, given that CCI can be used as a continuous variable?**
+  + <span style="color:red">Ryan's group has published in this style before, and since we're just curbing 4 points off everybody it doesn't matter</span>
+* **Given time to first admission being quite long in some cases (see 2.4), can we tolerate this?**
+  + <span style="color:red">It's collected from admission note, so yes</span>
+
+
+***
+
+
+### 2. Clinical outcomes
+
+#### 2.1 Length of stay
+```{r, echo=TRUE}
+ggplot(df, aes(length_of_stay_adm1_int)) +
+  geom_histogram(fill = 'red', colour = 'black', binwidth = 1) +
+  scale_x_continuous("LOS [days]", breaks = seq(0,35,by = 5)) +
+  coord_cartesian(xlim = c(0, 35)) +
+  scale_y_continuous("Count", breaks = seq(0,150,by = 25)) +
+  labs(title = "Length of stay (first admission)") +
+  theme_minimal()
+```
+
+The hospital length of stay (first admission) follows a left-leaning normal distribution, peaking at 4 days.
+All but one patient have been discharged five weeks after admission. __I suggest we check this outlier manually.__ I have already checked that LOS has been correctly calculated from admission and discharge data as entered in the datasheet. However, I only have the pseudonymised data and couldn't check the EMR myself.
+
+<span style="color:red">-> Ryan checked the EMR and confirms the outlier is in fact a person hospitalised for medical reasons for 75 days</span>
+
+```{r, echo=TRUE}
+df[df$length_of_stay_adm1_int > 35, c("study_nr_char", 'length_of_stay_adm1_int')]
+```
+
+***
+
+
+#### 2.2 Time to death or LFU
+```{r, echo=TRUE}
+ggplot(df, aes(days_adm1_to_readm_death_LFU_int)) +
+  geom_histogram(fill = 'red', colour = 'black', binwidth = 10) +
+  scale_x_continuous("Time [days]", breaks = seq(0,700,by = 100)) +
+  scale_y_continuous("Count", breaks = seq(0,150,by = 25)) +
+  labs(title = "Time from first admission until first event (readmission/death/LFU)") +
+  theme_minimal()
+```
+
+The observation period ranges from 0 to 677 days and follows a left-leaning normal distribution. I see no reason to investigate outliers based on this graph.
+
+***
+
+
+#### 2.3 Death or readmission within 90 days
+```{r, echo=TRUE}
+ggplot(data.frame(table(df$death_or_readm_within_90d_bin_fact, useNA = 'ifany')), aes(x = '', y = Freq, fill = Var1)) +
+  geom_bar(width = 1, stat = 'identity', colour = 'black') +
+  coord_polar("y", start=0) +
+  labs(title = "Events (death/readmission) within 90 days", x = element_blank()) +
+  scale_y_continuous("Count", breaks = seq(0,850,by = 50)) +
+  scale_fill_discrete('Had event?') +
+  theme_minimal()
+```
+
+As seen in the last graph, about two thirds of patients had an event (death, readmission or LFU) within 90 days after diagnosis.
+
+***
+
+
+#### 2.4 Time from primary diagnosis to hospital admission
+```{r, echo=TRUE}
+ggplot(df, aes(months_initial_cancer_dx_to_adm1_float)) +
+  geom_histogram(fill = 'red', colour = 'black', binwidth = 10) +
+  scale_x_continuous("Time [months]", breaks = seq(0,500,by = 50)) +
+  scale_y_continuous("Count", breaks = seq(0,200,by = 25)) +
+  labs(title = "Time from primary diagnosis to first admission") +
+  theme_minimal()
+```
+
+The time from initial diagnosis to first admission follows a roughly exponential decline.
+Eleven patients reportedly have been admitted more than 20 years after initial diagnosis. __Are we certain the column 'Months_initial_cancer_dx_to_Adm1' (original nomenclature) actually measures time in months rather than days or weeks?__
+
+<span style="color:red">With some cancer types being very slow-burning (prostate, breast, ...) this is in fact correct</span>
+<span style="color:red">When including as covariate, we might consider an interaction term with cancer type</span>
+
+-> use time from advanced diagnosis?
+-> continuous outcomes
+-> is in fact months, but some cancers (prostate) have long delays
+
+```{r, echo=TRUE}
+df[df$months_initial_cancer_dx_to_adm1_float > 240, c("study_nr_char", 'months_initial_cancer_dx_to_adm1_float')]
+```
+
+***
+
+
+
+### 3. Patient-reported outcomes
+
+With all patient-reported outcomes we rely on the oncology team to provide expertise on the following questions:
+
+* Does the distribution of data points match your expectations?
+  + What outliers might necessitate further investigation?
+  + <span style="color:red">Distribution is okay</span>
+* Is the score best used as a continuous, factorial or ordinate outcome?
+  + By default, I coded scores as a factor
+  + <span style="color:red">Use as continuous outcomes</span>
+* Is the amount on missing values tolerable?
+  + <span style="color:red">Yes</span>
+
+
+#### 3.1 PHQ4 total
+```{r, echo=TRUE}
+ggplot(data.frame(table(df$PHQ4_total_int, useNA = 'ifany')), aes(x = Var1, y = Freq)) +
+  geom_bar(width = 0.8, stat = 'identity', colour = 'black', fill = 'red') +
+  labs(title = "PHQ4 total score", x = element_blank()) +
+  scale_y_continuous("Count", breaks = seq(0,200,by = 25)) +
+  labs(x = 'Score') +
+  theme_minimal()
+```
+
+***
+
+
+#### 3.2 PHQ2 total
+```{r, echo=TRUE}
+ggplot(data.frame(table(df$PHQ2_total_int, useNA = 'ifany')), aes(x = Var1, y = Freq)) +
+  geom_bar(width = 0.8, stat = 'identity', colour = 'black', fill = 'red') +
+  labs(title = "PHQ2 total score", x = element_blank()) +
+  scale_y_continuous("Count", breaks = seq(0,250,by = 50)) +
+  labs(x = 'Score') +
+  theme_minimal()
+```
+
+***
+
+
+#### 3.3 GAD2 total
+```{r, echo=TRUE}
+ggplot(data.frame(table(df$GAD2_total_int, useNA = 'ifany')), aes(x = Var1, y = Freq)) +
+  geom_bar(width = 0.8, stat = 'identity', colour = 'black', fill = 'red') +
+  labs(title = "GAD2 total score", x = element_blank()) +
+  scale_y_continuous("Count", breaks = seq(0,300,by = 50)) +
+  labs(x = 'Score') +
+  theme_minimal()
+```
+
+***
+
+
+#### 3.4 ESAS total
+```{r, echo=TRUE}
+ggplot(data.frame(table(df$ESAS_total_int, useNA = 'ifany')), aes(x = Var1, y = Freq)) +
+  geom_bar(width = 1, stat = 'identity', colour = 'black', fill = 'red') +
+  labs(title = "ESAS total score", x = element_blank()) +
+  scale_y_continuous("Count", breaks = seq(0,25,by = 5)) +
+  labs(x = 'Score') +
+  theme_minimal()
+```
+
+Visually, ESAS definitely seems to be a continuous outcome with a range of 1 to 100, centered at 50. __Please confirm.__
+
+<span style="color:red">->It is a continuous scale, and the values look okay</span>
+
+***
+
+
+#### 3.5 ESAS physical
+```{r, echo=TRUE}
+ggplot(data.frame(table(df$ESAS_physical_int, useNA = 'ifany')), aes(x = Var1, y = Freq)) +
+  geom_bar(width = 1, stat = 'identity', colour = 'black', fill = 'red') +
+  labs(title = "ESAS physical score", x = element_blank()) +
+  scale_y_continuous("Count", breaks = seq(0,30,by = 5)) +
+  labs(x = 'Score') +
+  theme_minimal()
+```
+
+Same for ESAS physical, except the range is 1 to 70 and the center is 35. __Please confirm.__
+
+<span style="color:red">-> looks okay</span>
+
+***
+
+
+### 4. Body composition characteristics
+
+#### 4.1 BMI
+
+```{r, echo=TRUE}
+ggplot(df, aes(BMI_float)) +
+  geom_histogram(fill = 'red', colour = 'black', binwidth = 1) +
+  scale_x_continuous("BMI [kg/m²]", breaks = seq(10,50,by = 5)) +
+  coord_cartesian(xlim = c(10, 50)) +
+  scale_y_continuous("Count", breaks = seq(0,150,by = 10)) +
+  labs(title = "Body Mass Index") +
+  theme_minimal()
+```
+
+```{r, echo=TRUE}
+df[df$BMI_float < 15 | df$BMI_float > 45, c("study_nr_char", 'BMI_float')]
+```
+
+__We might want to check these extreme cases, especially at the lower end.__
+
+***
+
+#### 4.2 Skeletal muscle
+```{r, echo=TRUE}
+
+T5M <- ggplot(df, aes(T5_Muscle_muscle_area_cm2)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 10) +
+        labs(title = "T5")
+T8M <- ggplot(df, aes(T8_Muscle_muscle_area_cm2)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 10) +
+        labs(title = "T8")
+T10M <- ggplot(df, aes(T10_Muscle_muscle_area_cm2)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 10) +
+        labs(title = "T10")
+L3M <- ggplot(df, aes(L3_Muscle_muscle_area_cm2)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 10) +
+        labs(title = "L3")
+
+Muscle_areas_faceted <- (T5M | T8M)/
+  (T10M | L3M)&
+  coord_cartesian(xlim = c(10, 300), ylim = c(0, 175)) &
+  scale_x_continuous("Cross-sectional area [cm²]", breaks = seq(0,300,by = 50)) &
+  theme_minimal()
+
+Muscle_areas_faceted  +
+  plot_annotation(title = "Muscle cross-sectional area for each level")
+
+```
+
+All levels mimic the expected pattern of a left-leaning normal distribution.
+As expected, T5 is the level with both the largest values and spread in distribution.
+Once normalised for absolute values, all distributions would look alike in terms of spread.
+
+T5 is the level with most missing values (269, compared to 172/62/169 for T8/T10/L3 respectively). This is to be expected in a cohort of mixed cancers, as the T5 level is much more prone to encounter field of vew issues. Notably, the T10 level has least mssing data, as it is always included in the thoracic scans, but also sometimes included in abdominal scans.
+
+
+#### 4.3 Skeletal Muscle Index
+```{r, echo=TRUE}
+
+T5SMI <- ggplot(df, aes(T5_Muscle_index)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 5) +
+        labs(title = "T5")
+T8SMI <- ggplot(df, aes(T8_Muscle_index)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 5) +
+        labs(title = "T8")
+T10SMI <- ggplot(df, aes(T10_Muscle_index)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 5) +
+        labs(title = "T10")
+L3SMI <- ggplot(df, aes(L3_Muscle_index)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 5) +
+        labs(title = "L3")
+
+SMI_faceted <- (T5SMI | T8SMI)/
+  (T10SMI | L3SMI)&
+  coord_cartesian(xlim = c(0, 100), ylim = c(0, 250)) &
+  scale_x_continuous("Cross-sectional Index [cm²/m²]", breaks = seq(0,100,by = 10)) &
+  theme_minimal()
+
+SMI_faceted  +
+  plot_annotation(title = "Muscle cross-sectional index for each level")
+
+```
+
+After normalising for height, the variability in the data is partially reduced, but essentially the same.
+
+***
+
+
+#### 4.4 Skeletal Muscle Index by sex
+```{r, echo=TRUE}
+
+df_male <- df[df$sex_bin_fact == 'Male', ]
+df_female <- df[df$sex_bin_fact == 'Female', ]
+
+T5SMI_m <- ggplot(df_male, aes(T5_Muscle_index)) +
+        geom_histogram(fill = 'blue', colour = 'black', binwidth = 5) +
+        labs(title = "T5")
+T8SMI_m <- ggplot(df_male, aes(T8_Muscle_index)) +
+        geom_histogram(fill = 'blue', colour = 'black', binwidth = 5) +
+        labs(title = "T8")
+T10SMI_m <- ggplot(df_male, aes(T10_Muscle_index)) +
+        geom_histogram(fill = 'blue', colour = 'black', binwidth = 5) +
+        labs(title = "T10")
+L3SMI_m <- ggplot(df_male, aes(L3_Muscle_index)) +
+        geom_histogram(fill = 'blue', colour = 'black', binwidth = 5) +
+        labs(title = "L3")
+
+SMI_faceted_male <- (T5SMI_m | T8SMI_m)/
+  (T10SMI_m | L3SMI_m)&
+  coord_cartesian(xlim = c(0, 100), ylim = c(0, 150)) &
+  scale_x_continuous("Cross-sectional Index [cm²/m²]", breaks = seq(0,100,by = 25)) &
+  theme_minimal()
+
+
+T5SMI_f <- ggplot(df_female, aes(T5_Muscle_index)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 5) +
+        labs(title = "T5")
+T8SMI_f <- ggplot(df_female, aes(T8_Muscle_index)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 5) +
+        labs(title = "T8")
+T10SMI_f <- ggplot(df_female, aes(T10_Muscle_index)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 5) +
+        labs(title = "T10")
+L3SMI_f <- ggplot(df_female, aes(L3_Muscle_index)) +
+        geom_histogram(fill = 'red', colour = 'black', binwidth = 5) +
+        labs(title = "L3")
+
+SMI_faceted_female <- (T5SMI_f | T8SMI_f)/
+  (T10SMI_f | L3SMI_f)&
+  coord_cartesian(xlim = c(0, 100), ylim = c(0, 150)) &
+  scale_x_continuous("Cross-sectional Index [cm²/m²]", breaks = seq(0,100,by = 25)) &
+  theme_minimal()
+
+
+SMI_comparison_sex <- (T5SMI_m | T8SMI_m | T10SMI_m | L3SMI_m)/
+  (T5SMI_f | T8SMI_f | T10SMI_f | L3SMI_f) &
+  coord_cartesian(xlim = c(0, 100), ylim = c(0, 150)) &
+  scale_x_continuous("CSI", breaks = seq(0,100,by = 25)) &
+  theme_minimal()
+
+
+SMI_faceted_male +
+  plot_annotation(title = "Muscle cross-sectional index for each level (males)")
+
+SMI_faceted_female +
+  plot_annotation(title = "Muscle cross-sectional index for each level (females)")
+
+SMI_comparison_sex +
+  plot_annotation(title = "Muscle cross-sectional index for each level (males vs females)",
+                  caption = 'Cross-sectional index (CSI) [cm^2^/m^2^] in males (blue) vs females (red)') 
+```
+
+As expected, on average males tend to have higher CSI than females. The gender difference is more pronounced at the T5/T8 levels than at the T10/L3 levels:
+
+Level | male average/female average
+------------- | -------------
+T5 | `r mean(df_male$T5_Muscle_index, na.rm = T) / mean(df_female$T5_Muscle_index, na.rm = T)`
+T8 | `r mean(df_male$T8_Muscle_index, na.rm = T) / mean(df_female$T8_Muscle_index, na.rm = T)` 
+T10 | `r mean(df_male$T10_Muscle_index, na.rm = T) / mean(df_female$T10_Muscle_index, na.rm = T)`
+L3 | `r mean(df_male$L3_Muscle_index, na.rm = T) / mean(df_female$L3_Muscle_index, na.rm = T)`
+
+***
+
