@@ -3,11 +3,15 @@
 
 require(dplyr)
 
-Get_IPRO_data <- function(csv_location='B:\\Dropbox (Partners HealthCare)\\iPRO_BC_shared\\20200522_iPRO_Cachexia_Database_for Florian.csv') {
+Get_IPRO_data <- function() {
+  
+  # use paths from a user-specific paths file (not synchronised with git). This allows for cross-user-functionality
+  paths <- readr::read_csv('paths.csv') %>%
+    dplyr::pull(path, key)
   
   # Importing the data
   source('Read_IPRO_data.R')
-  ipro_data <- Read_IPRO_data(data_location=csv_location)
+  ipro_data <- Read_IPRO_data(data_location=paths[['data']])
   
   
   # Group cancer types - NEW

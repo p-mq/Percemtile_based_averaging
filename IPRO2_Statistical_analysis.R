@@ -1,8 +1,8 @@
-## ----set-options, echo=FALSE, cache=FALSE------------------------------------------------------------------------------------------------------------------------------------
+## ----set-options, echo=FALSE, cache=FALSE--------------------------------------------------------------------
 options(width = 2000)
 
 
-## ---- echo=FALSE, message=FALSE----------------------------------------------------------------------------------------------------------------------------------------------
+## ---- echo=FALSE, message=FALSE------------------------------------------------------------------------------
 library(plyr)
 library(survival)
 library(ggplot2)
@@ -13,7 +13,7 @@ library(DescTools)
 library(dplyr)
 
 
-## ---- echo=TRUE, warning=FALSE, message=FALSE, cache=FALSE-------------------------------------------------------------------------------------------------------------------
+## ---- echo=TRUE, warning=FALSE, message=FALSE, cache=FALSE---------------------------------------------------
 # Importing the data
 source('Get_IPRO_data.R')
 df <- Get_IPRO_data()
@@ -25,7 +25,7 @@ df_no_na <- df[!is.na(df$L3_Muscle_muscle_area_cm2) &
 
 
 
-## ---- echo=FALSE,warning=FALSE, message=FALSE, cache=FALSE-------------------------------------------------------------------------------------------------------------------
+## ---- echo=FALSE,warning=FALSE, message=FALSE, cache=FALSE---------------------------------------------------
 # Add percenntile based imputation
 source('../PBI/Percentile_based_imputation.R')
 analysed_levels <- c("T5", "T8", "T10", "L3")
@@ -46,7 +46,7 @@ df_no_na <- Percentile_based_imputation(df=df_no_na, sex_column = 'sex_bin_fact'
                                        )
 
 
-## ---- echo=TRUE, message=FALSE-----------------------------------------------------------------------------------------------------------------------------------------------
+## ---- echo=TRUE, message=FALSE-------------------------------------------------------------------------------
 source('../Blanket-statsments/Blanket_statsments.R')  # Making wrapper methods available
 
 # Defining standard covariates
@@ -86,7 +86,7 @@ ipro_models_to_run_df
 
 
 
-## ---- echo=TRUE--------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ---- echo=TRUE----------------------------------------------------------------------------------------------
 # Running the models
 index_models <- blanket_statsments(df, ipro_models_to_run_df, index_predictors, common_covariates)
 atten_models <- blanket_statsments(df, ipro_models_to_run_df, atten_predictors, common_covariates)
@@ -98,7 +98,7 @@ atten_model_comp_df <- table_blanket_statsments(df, atten_models)
 gauge_model_comp_df <- table_blanket_statsments(df, gauge_models)
 
 
-## ---- echo=TRUE--------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ---- echo=TRUE----------------------------------------------------------------------------------------------
 rownames(index_model_comp_df) <- paste(rownames(index_model_comp_df), '_index', sep = '')
 rownames(atten_model_comp_df) <- paste(rownames(atten_model_comp_df), '_atten', sep = '')
 rownames(gauge_model_comp_df) <- paste(rownames(gauge_model_comp_df), '_gauge', sep = '')
@@ -120,7 +120,7 @@ kable(overview_comp_df_ordered) %>%
 
 
 
-## ---- echo=TRUE--------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ---- echo=TRUE----------------------------------------------------------------------------------------------
 source('Rank_df.R')  # Making wrapper methods available
 
 comp_row_names <- rownames(overview_comp_df)  # remembering row names for later
@@ -185,7 +185,7 @@ overview_comp_df %>%
 
 
 
-## ---- echo=TRUE--------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ---- echo=TRUE----------------------------------------------------------------------------------------------
 # Running the models
 cca_index_models <- blanket_statsments(df_no_na, ipro_models_to_run_df, index_predictors, common_covariates)
 cca_atten_models <- blanket_statsments(df_no_na, ipro_models_to_run_df, atten_predictors, common_covariates)
@@ -197,7 +197,7 @@ cca_atten_model_comp_df <- table_blanket_statsments(df_no_na, cca_atten_models)
 cca_gauge_model_comp_df <- table_blanket_statsments(df_no_na, cca_gauge_models)
 
 
-## ---- echo=TRUE--------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ---- echo=TRUE----------------------------------------------------------------------------------------------
 rownames(cca_index_model_comp_df) <- paste(rownames(cca_index_model_comp_df), '_index', sep = '')
 rownames(cca_atten_model_comp_df) <- paste(rownames(cca_atten_model_comp_df), '_atten', sep = '')
 rownames(cca_gauge_model_comp_df) <- paste(rownames(cca_gauge_model_comp_df), '_gauge', sep = '')
@@ -256,7 +256,7 @@ cca_overview_comp_df %>%
 
 
 
-## ---- echo=TRUE--------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ---- echo=TRUE----------------------------------------------------------------------------------------------
 
 # Summarising the column-wise comparisn is easy
 summary_col_comp_df <- data.frame()
@@ -300,7 +300,7 @@ PBI_rank_only <- summary_col_comp_df[grepl('PBI', rownames(summary_col_comp_df),
 
 
 
-## ---- echo=TRUE--------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ---- echo=TRUE----------------------------------------------------------------------------------------------
 summary_col_comp_df %>%
   kable(escape = F, align = "c", caption = 'Rank averages for different levels, expected mean = 3') %>%
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
@@ -314,7 +314,7 @@ summary_col_comp_df %>%
   pack_rows("T8 models", 17, 20)
 
 
-## ---- echo=TRUE--------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ---- echo=TRUE----------------------------------------------------------------------------------------------
 PBI_rank_only %>%
   kable(escape = F, align = "c", caption = 'PBI ranks only') %>%
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
@@ -323,7 +323,7 @@ PBI_rank_only %>%
   row_spec(0, bold = T)
 
 
-## ---- echo=TRUE--------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ---- echo=TRUE----------------------------------------------------------------------------------------------
 summary_row_comp_df %>%
   kable(escape = F, align = "c", caption = 'comparing average ranks of index- vs. attenuation-/gauge-based models, expected mean = 2') %>%
   kable_styling(bootstrap_options = c("striped", "hover")) %>%

@@ -1,0 +1,26 @@
+---
+title: "JCSM Revisions"
+author: J. Peter Marquardt
+date: "report created on: `r format(Sys.time(), '%Y-%m-%d')`"
+knit: (function(inputFile, encoding) {rmarkdown::render(inputFile, output_file = paste0("../Revision_JCSM/", format(Sys.time(), "%Y-%m-%d_%H%M"), "_revision",".html")) } )
+output:
+  rmdformats::readthedown:
+    highlight: kate 
+    number_sections: true
+    code_folding: hide
+    code_download: true
+    collapsed: false
+---
+
+# Preparing the workspace
+```{r, echo=F, message=F}
+# making the statistical analysis results available in local environment
+knitr::purl('../IPRO2_Statistical_analysis.Rmd', output = '../IPRO2_Statistical_analysis.R')  # converting code snippets into a script
+source('../IPRO2_Statistical_analysis.R')
+# libraries
+require(ggplot2)
+require(GGally)
+
+```
+
+
