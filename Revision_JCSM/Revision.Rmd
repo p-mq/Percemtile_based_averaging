@@ -15,11 +15,11 @@ output:
 # Preparing the workspace
 ```{r, echo=F, message=F}
 # making the statistical analysis results available in local environment
-knitr::purl('../IPRO2_Statistical_analysis.Rmd', output = '../IPRO2_Statistical_analysis.R')  # converting code snippets into a script
-source('../IPRO2_Statistical_analysis.R')
-# libraries
-require(ggplot2)
-require(GGally)
+setwd('../')
+knitr::purl('IPRO2_Statistical_analysis.Rmd')  # converting code snippets into a script
+source('IPRO2_Statistical_analysis.R')
+# libraries not included in main analysis
+require(tableone)
 
 ```
 

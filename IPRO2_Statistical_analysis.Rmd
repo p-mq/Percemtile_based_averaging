@@ -13,6 +13,7 @@ options(width = 2000)
 ```
 
 ```{r, echo=FALSE, message=FALSE}
+library(BlanketStatsments) # Custom library for this project, available at https://github.com/p-mq/BlanketStatsments (and possibly CRAN in the future)
 library(plyr)
 library(survival)
 library(ggplot2)
@@ -59,8 +60,6 @@ Statistical analyses follow the guidelines set out by the statistical analysis p
 
 Models have been coded with wrapper functions to use a common set of covariates while varying predictors and outcomes:
 ```{r, echo=TRUE, message=FALSE}
-source('../../bodycomp_analyses/Blanket-statsments/Blanket_statsments.R')  # Making wrapper methods available
-
 # Defining standard covariates
 common_covariates <- c('age_int',
                        'sex_bin_fact',
@@ -104,14 +103,14 @@ ipro_models_to_run_df
 
 ```{r, echo=TRUE}
 # Running the models
-index_models <- blanket_statsments(df, ipro_models_to_run_df, index_predictors, common_covariates)
-atten_models <- blanket_statsments(df, ipro_models_to_run_df, atten_predictors, common_covariates)
-gauge_models <- blanket_statsments(df, ipro_models_to_run_df, gauge_predictors, common_covariates)
+index_models <- BlanketStatsments::blanket_statsments(df, ipro_models_to_run_df, index_predictors, common_covariates)
+atten_models <- BlanketStatsments::blanket_statsments(df, ipro_models_to_run_df, atten_predictors, common_covariates)
+gauge_models <- BlanketStatsments::blanket_statsments(df, ipro_models_to_run_df, gauge_predictors, common_covariates)
 
 # tabling the key characteristics
-index_model_comp_df <- table_blanket_statsments(df, index_models)
-atten_model_comp_df <- table_blanket_statsments(df, atten_models)
-gauge_model_comp_df <- table_blanket_statsments(df, gauge_models)
+index_model_comp_df <- BlanketStatsments::table_blanket_statsments(df, index_models)
+atten_model_comp_df <- BlanketStatsments::table_blanket_statsments(df, atten_models)
+gauge_model_comp_df <- BlanketStatsments::table_blanket_statsments(df, gauge_models)
 ```
 
 
@@ -223,14 +222,14 @@ Note: The p-value refers to the body composition metric used; tied ranks are cou
 
 ```{r, echo=TRUE}
 # Running the models
-cca_index_models <- blanket_statsments(df_no_na, ipro_models_to_run_df, index_predictors, common_covariates)
-cca_atten_models <- blanket_statsments(df_no_na, ipro_models_to_run_df, atten_predictors, common_covariates)
-cca_gauge_models <- blanket_statsments(df_no_na, ipro_models_to_run_df, gauge_predictors, common_covariates)
+cca_index_models <- BlanketStatsments::blanket_statsments(df_no_na, ipro_models_to_run_df, index_predictors, common_covariates)
+cca_atten_models <- BlanketStatsments::blanket_statsments(df_no_na, ipro_models_to_run_df, atten_predictors, common_covariates)
+cca_gauge_models <- BlanketStatsments::blanket_statsments(df_no_na, ipro_models_to_run_df, gauge_predictors, common_covariates)
 
 # tabling the key characteristics
-cca_index_model_comp_df <- table_blanket_statsments(df_no_na, cca_index_models)
-cca_atten_model_comp_df <- table_blanket_statsments(df_no_na, cca_atten_models)
-cca_gauge_model_comp_df <- table_blanket_statsments(df_no_na, cca_gauge_models)
+cca_index_model_comp_df <- BlanketStatsments::table_blanket_statsments(df_no_na, cca_index_models)
+cca_atten_model_comp_df <- BlanketStatsments::table_blanket_statsments(df_no_na, cca_atten_models)
+cca_gauge_model_comp_df <- BlanketStatsments::table_blanket_statsments(df_no_na, cca_gauge_models)
 ```
 
 
@@ -377,11 +376,11 @@ PBI_rank_only %>%
   row_spec(0, bold = T)
 ```
 
-As can be seen in the table, **PBI 'performs' above-average in all the characteristics** when considering all cases, with the advantage being especially prominent for number of cases.
+As can be seen in the table, **PBA 'performs' above-average in all the characteristics** when considering all cases, with the advantage being especially prominent for number of cases.
 Using the C-statistic as the key measure, both L3 and T5 perform on par with PBI in the missing case analysis.
 Nevertheless, the difference is too small to assume a significant improvement over single levels in this measurement.
 
-In the general analysis, PBI has a two key disadvantages to work against:
+In the general analysis, PBA has a two key disadvantages to work against:
 The model includes a larger and arguably more balanced distribution of cases. This leads to metrics that benefit from overfitting (C-statistic, R²) being impeded compared to single levels.
 This is slightly exacerbated by the fact that the attenuation- and gauge-based models use an additional covariable (contrast) in the single-level version.
 In comparison, the percentiles are already generated for contrast and non-contrast groups separately.
@@ -390,7 +389,7 @@ In comparison, the percentiles are already generated for contrast and non-contra
 We see the expected changes when looking at cases with muscle data for all levels (complete case analysis):
 In this analysis, all models are run on the exact same cases, hence the equal n. This equalises the disadvantages for n, C and R², but also the advantage for p-values.
 
-While we're not doing formal statistical tests, it is pretty clear that **when comparing 'performance' _on a level playing field_, PBI is more clearly advantageous regarding C-statistic and R²**, while maintaining an advantage regarding p-value.
+While we're not doing formal statistical tests, it is pretty clear that **when comparing 'performance' _on a level playing field_, PBA is more clearly advantageous regarding C-statistic and R²**, while maintaining an advantage regarding p-value.
 
 
 

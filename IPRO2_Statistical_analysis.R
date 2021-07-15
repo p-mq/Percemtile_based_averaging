@@ -3,6 +3,7 @@ options(width = 2000)
 
 
 ## ---- echo=FALSE, message=FALSE------------------------------------------------------------------------------
+library(BlanketStatsments) # Custom library for this project, available at https://github.com/p-mq/BlanketStatsments (and possibly CRAN in the future)
 library(plyr)
 library(survival)
 library(ggplot2)
@@ -26,29 +27,20 @@ df_no_na <- df[!is.na(df$L3_Muscle_muscle_area_cm2) &
 
 
 ## ---- echo=FALSE,warning=FALSE, message=FALSE, cache=FALSE---------------------------------------------------
-# Add percenntile based imputation
-source('../PBI/Percentile_based_imputation.R')
-analysed_levels <- c("T5", "T8", "T10", "L3")
-available_compartments <- vector(mode = 'list', length = length(analysed_levels))
-names(available_compartments) <- analysed_levels
-for (level in analysed_levels){available_compartments[[level]] <- c('Muscle', 'SAT')}
 
-df <- Percentile_based_imputation(df=df, sex_column = 'sex_bin_fact',
-                                   female_value = 'Female', male_value = 'Male',
-                                   height_column = 'height_m_float',
-                                   available_compartments = available_compartments
-                                  )
+# Add calculated bodycomp measures (index, gauge)
+source('Add_calculated_bodycomp.R')
+df <- Add_calculated_bodycomp(df)
+df_no_na <- Add_calculated_bodycomp(df_no_na)
 
-df_no_na <- Percentile_based_imputation(df=df_no_na, sex_column = 'sex_bin_fact',
-                                         female_value = 'Female', male_value = 'Male',
-                                         height_column = 'height_m_float',
-                                         available_compartments = available_compartments
-                                       )
+# Add percentile based averaging
+source('Add_percentile_based_averaging.R')
+df <- Add_percentile_based_averaging(data = df)
+df_no_na <- Add_percentile_based_averaging(data = df_no_na)
+
 
 
 ## ---- echo=TRUE, message=FALSE-------------------------------------------------------------------------------
-source('../Blanket-statsments/Blanket_statsments.R')  # Making wrapper methods available
-
 # Defining standard covariates
 common_covariates <- c('age_int',
                        'sex_bin_fact',
@@ -88,14 +80,14 @@ ipro_models_to_run_df
 
 ## ---- echo=TRUE----------------------------------------------------------------------------------------------
 # Running the models
-index_models <- blanket_statsments(df, ipro_models_to_run_df, index_predictors, common_covariates)
-atten_models <- blanket_statsments(df, ipro_models_to_run_df, atten_predictors, common_covariates)
-gauge_models <- blanket_statsments(df, ipro_models_to_run_df, gauge_predictors, common_covariates)
+index_models <- BlanketStatsments::blanket_statsments(df, ipro_models_to_run_df, index_predictors, common_covariates)
+atten_models <- BlanketStatsments::blanket_statsments(df, ipro_models_to_run_df, atten_predictors, common_covariates)
+gauge_models <- BlanketStatsments::blanket_statsments(df, ipro_models_to_run_df, gauge_predictors, common_covariates)
 
 # tabling the key characteristics
-index_model_comp_df <- table_blanket_statsments(df, index_models)
-atten_model_comp_df <- table_blanket_statsments(df, atten_models)
-gauge_model_comp_df <- table_blanket_statsments(df, gauge_models)
+index_model_comp_df <- BlanketStatsments::table_blanket_statsments(df, index_models)
+atten_model_comp_df <- BlanketStatsments::table_blanket_statsments(df, atten_models)
+gauge_model_comp_df <- BlanketStatsments::table_blanket_statsments(df, gauge_models)
 
 
 ## ---- echo=TRUE----------------------------------------------------------------------------------------------
@@ -187,14 +179,14 @@ overview_comp_df %>%
 
 ## ---- echo=TRUE----------------------------------------------------------------------------------------------
 # Running the models
-cca_index_models <- blanket_statsments(df_no_na, ipro_models_to_run_df, index_predictors, common_covariates)
-cca_atten_models <- blanket_statsments(df_no_na, ipro_models_to_run_df, atten_predictors, common_covariates)
-cca_gauge_models <- blanket_statsments(df_no_na, ipro_models_to_run_df, gauge_predictors, common_covariates)
+cca_index_models <- BlanketStatsments::blanket_statsments(df_no_na, ipro_models_to_run_df, index_predictors, common_covariates)
+cca_atten_models <- BlanketStatsments::blanket_statsments(df_no_na, ipro_models_to_run_df, atten_predictors, common_covariates)
+cca_gauge_models <- BlanketStatsments::blanket_statsments(df_no_na, ipro_models_to_run_df, gauge_predictors, common_covariates)
 
 # tabling the key characteristics
-cca_index_model_comp_df <- table_blanket_statsments(df_no_na, cca_index_models)
-cca_atten_model_comp_df <- table_blanket_statsments(df_no_na, cca_atten_models)
-cca_gauge_model_comp_df <- table_blanket_statsments(df_no_na, cca_gauge_models)
+cca_index_model_comp_df <- BlanketStatsments::table_blanket_statsments(df_no_na, cca_index_models)
+cca_atten_model_comp_df <- BlanketStatsments::table_blanket_statsments(df_no_na, cca_atten_models)
+cca_gauge_model_comp_df <- BlanketStatsments::table_blanket_statsments(df_no_na, cca_gauge_models)
 
 
 ## ---- echo=TRUE----------------------------------------------------------------------------------------------
