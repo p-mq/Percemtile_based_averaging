@@ -1,5 +1,5 @@
 ---
-title: "JCSM Revisions"
+title: "JCSM Revision 1"
 author: J. Peter Marquardt
 date: "report created on: `r format(Sys.time(), '%Y-%m-%d')`"
 knit: (function(inputFile, encoding) {rmarkdown::render(inputFile, output_file = paste0("../Revision_JCSM/", format(Sys.time(), "%Y-%m-%d_%H%M"), "_revision",".html")) } )
@@ -13,14 +13,49 @@ output:
 ---
 
 # Preparing the workspace
-```{r, echo=F, message=F}
-# making the statistical analysis results available in local environment
-setwd('../')
-knitr::purl('IPRO2_Statistical_analysis.Rmd')  # converting code snippets into a script
-source('IPRO2_Statistical_analysis.R')
-# libraries not included in main analysis
+```{r, warning=F, message=F}
+require(basecamb)
+require(dplyr)
+require(readr)
 require(tableone)
+
+# Read in the data
+# use paths from a user-specific paths file (not synchronised with git). This allows for cross-user-functionality
+paths <- readr::read_csv('../paths.csv') %>%
+  dplyr::pull(path, key)
+  
+data <- readr::read_csv(paths[['data']], na = '#NULL!') %>%
+  basecamb::apply_data_dictionary(data_dictionary = readr::read_csv('Data_dictionary_revision.csv')) %>%
+  dplyr::mutate(Insurance_type = dplyr::case_when(Insurance_government == 'Government-sponsored' ~ 'Government-sponsored',
+                                                  Insurance_private == 'Private' ~ 'Private',
+                                                  Insurance_government == 'Non-government' & Insurance_private == 'Non-private' ~ 'None',
+                                                  TRUE ~ 'ERROR_fix_this')
+  )
 
 ```
 
+# Comment 1: Systematic differences between patients with/without imaging
 
+```{r}
+data_tableone <- dplyr::select(data, c('Age', 'Sex', 'Race_ethnicity', 'Marital_status', 'Education_level', 'Insurance_type', 'Cancer_type', 'Months_since_cancer_diagnosis', 'Charlson_comorbidity_index', 'Body_mass_index', 'Muscle_data_present'))
+
+# Comparing patients with muscle data to those without
+tableone::CreateTableOne(data=data, strata = 'Muscle_data_present', addOverall = TRUE) %>%
+  print(exact = c('Race_ethnicity'), quote = FALSE, noSpaces = TRUE, printToggle = FALSE) -> table1
+
+# Exporting to csv
+readr::write_csv(data.frame(table1), 'Table_One_Comparison.csv')
+
+# Creating appealing visual output
+tableone::kableone(table1)
+
+```
+We find that patients without imaging are older, more likely to be government insured, and more likely to have a longer time from first diagnosis of incurable cancer to index hospital admission.
+
+Differences in cancer type should be taken with a grain of salt due to small subgroups. That said, censored patients are less likely to have lung of gastrointestinal cancer, but more likely to have hematologic malignancies. This is plausible because lung and GI cancer warrant chest or abdominal CT scans required for inclusion. Conversely, staging of leukemia and lymphoma does not necessarily require imaging once an incurable stage is confirmed.
+
+# Comment 2: Median time of follow-up
+```{r}
+median(data$Time_to_death_LFU_days)
+```
+The median time to death/follow-up was __`r median(data$Time_to_death_LFU_days)`__ days.

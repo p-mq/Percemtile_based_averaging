@@ -1,0 +1,14 @@
+old_column_name,new_data_type,new_column_name,coding
+Age,integer,Age,
+sex,factor,Sex,"1' = 'Female', '2' = 'Male', 'default' = 'ERROR_fix_this'"
+Race_cat,factor,Race_ethnicity,"1' = 'Other', '2' = 'Asian', '3' = 'African American', '4' = 'Hispanic', '5' = 'Other', '6' = 'White'"
+relationship_status,factor,Marital_status,"1' = 'Married', '3' = 'Single', '4' = 'Divorced', '5' = 'Widowed', 'default' = 'ERROR_fix_this'"
+Education_binary,factor,Education_level,"0' = 'High school and below', '1' = 'Beyond high school' , 'NA' = 'Declined to provide'"
+Insurance_government,factor,Insurance_government,"1' = 'Government-sponsored', 'default' = 'Non-government'"
+Insurance_private,factor,Insurance_private,"1' = 'Private', 'default' = 'Non-private'"
+cancer_dx_cat_Richard,factor,Cancer_type,"0' = 'Gastrointestinal', '1' = 'Lung', '2' = 'Breast', '3' = 'Genitourinary', '4' = 'Melanoma', '5' = 'Gynecologic', '6' = 'Head and neck', '7' = 'Sarcoma', '8' = 'ThisIsAnErrorAndShouldNotBeHere', '9' = 'Cancer of unknown primary', '10' = 'Leukemia', '11' = 'Leukemia', '12' = 'Lymphoma', '13' = 'Lymphoma'"
+Months_Adv_cancer_dx_to_Ad1,float,Months_since_cancer_diagnosis,
+CCI_total_score,integer,Charlson_comorbidity_index,
+EVS_BMI,float,Body_mass_index,
+average_perc_muscle_index,factor,Muscle_data_present,"default' = 'yes', 'NA' = 'no'"
+Days_DC_death_or_lastFU,integer,Time_to_death_LFU_days,
