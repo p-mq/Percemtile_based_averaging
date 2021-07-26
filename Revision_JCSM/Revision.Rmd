@@ -13,6 +13,7 @@ output:
 ---
 
 # Preparing the workspace
+
 ```{r, warning=F, message=F}
 require(basecamb)
 require(dplyr)
@@ -50,12 +51,16 @@ readr::write_csv(data.frame(table1), 'Table_One_Comparison.csv')
 tableone::kableone(table1)
 
 ```
+
 We find that patients without imaging are older, more likely to be government insured, and more likely to have a longer time from first diagnosis of incurable cancer to index hospital admission.
 
 Differences in cancer type should be taken with a grain of salt due to small subgroups. That said, censored patients are less likely to have lung of gastrointestinal cancer, but more likely to have hematologic malignancies. This is plausible because lung and GI cancer warrant chest or abdominal CT scans required for inclusion. Conversely, staging of leukemia and lymphoma does not necessarily require imaging once an incurable stage is confirmed.
 
 # Comment 2: Median time of follow-up
+
 ```{r}
 median(data$Time_to_death_LFU_days)
+IQR(data$Time_to_death_LFU_days)
 ```
-The median time to death/follow-up was __`r median(data$Time_to_death_LFU_days)`__ days.
+
+The median time to death/follow-up was **`r median(data$Time_to_death_LFU_days)` +- `r IQR(data$Time_to_death_LFU_days)` (IQR)** days.
